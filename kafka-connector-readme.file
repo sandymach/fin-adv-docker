@@ -1,0 +1,41 @@
+ 1.  colima start
+===============================
+ 2.  docker compose -f docker-compose-kafka.yml up -d
+   docker compose -f docker-compose-connect.yml up -d
+
+
+docker compose -f docker-compose-kafka.yml down -v
+docker compose -f docker-compose-connect.yml down -v
+
+========================================
+3. docker exec -it portfolio-kafka /opt/kafka/bin/kafka-topics.sh \
+--bootstrap-server localhost:9092 \
+--list
+
+curl -X PUT http://localhost:8083/connectors/rds-mysql-portfolio-source/config \
+-H "Content-Type: application/json" \
+--data-binary @rds-mysql-config.json
+
+======================================
+
+curl http://localhost:8083/connectors/rds-mysql-portfolio-source/status
+
+
+
+==============================
+
+ curl -X POST http://localhost:8084/connectors \
+   -H "Content-Type: application/json" \
+   -d @s3-sink-connector.json
+
+   curl http://localhost:8084/connector-plugins
+
+
+   ======================================================
+
+   docker logs portfolio-kafka --tail 100
+   docker logs kafka-connect  --tail 100
+   docker ps -a
+   docker exec -it portfolio-kafka env | grep KAFKA
+
+   docker compose -f docker-compose-connect.yml up --build -d

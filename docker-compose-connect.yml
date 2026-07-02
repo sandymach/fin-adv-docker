@@ -1,0 +1,56 @@
+services:
+  connect:
+    image: quay.io/debezium/connect:3.0.8.Final
+    container_name: kafka-connect
+    ports:
+      - "8083:8083"
+    networks:
+      - kafka-net
+    environment:
+      BOOTSTRAP_SERVERS: kafka:29092
+      GROUP_ID: debezium-connect-cluster
+
+      CONFIG_STORAGE_TOPIC: debezium-connect-configs
+      OFFSET_STORAGE_TOPIC: debezium-connect-offsets
+      STATUS_STORAGE_TOPIC: debezium-connect-status
+
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+
+  s3-connect:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: s3-connect
+    ports:
+      - "8084:8083"
+    networks:
+      - kafka-net
+    environment:
+      KAFKA_HEAP_OPTS: "-Xms128M -Xmx512M"
+      CONNECT_BOOTSTRAP_SERVERS: kafka:29092
+      CONNECT_REST_ADVERTISED_HOST_NAME: s3-connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: s3-connect-cluster
+
+      CONNECT_CONFIG_STORAGE_TOPIC: s3-connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: s3-connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: s3-connect-status
+
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+
+networks:
+  kafka-net:
+    external: true
