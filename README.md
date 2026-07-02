@@ -84,3 +84,5 @@ docker ps -a
 docker exec -it portfolio-kafka env | grep KAFKA  
 
 docker compose -f docker-compose-connect.yml up --build -d
+
+
